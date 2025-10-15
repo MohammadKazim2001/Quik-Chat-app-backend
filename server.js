@@ -6,6 +6,9 @@ import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoute.js";
 import { Server } from "socket.io"; // ✅ Correct import
+import cloudinary from "./lib/cloudinary.js";
+
+console.log("Cloudinary Config:", cloudinary.config());
 
 // create express app and HTTP server
 const app = express();

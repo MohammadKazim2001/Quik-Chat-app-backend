@@ -5,13 +5,13 @@ import http from "http";
 import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoute.js";
-import { server } from "socket.io";
+import { Server } from "socket.io"; // ✅ Correct import
 
 // create express app and HTTP server
 const app = express();
 const server = http.createServer(app);
 
-//intialize socket.io server
+// initialize socket.io server
 export const io = new Server(server, {
   cors: { origin: "*" },
 });
@@ -26,12 +26,13 @@ io.on("connection", (socket) => {
 
   if (userId) userSocketMap[userId] = socket.id;
 
-  //emit online users to connected users
+  // emit online users to connected users
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
-  socket.on("disconnected", () => {
+  socket.on("disconnect", () => {
+    // ✅ should be "disconnect", not "disconnected"
     console.log("user disconnected", userId);
-    delete userSocketMap(userId);
+    delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
@@ -41,7 +42,7 @@ app.use(express.json({ limit: "4mb" }));
 app.use(cors());
 
 // Test route
-app.use("/api/status", (req, res) => res.send("server is live"));
+app.get("/api/status", (req, res) => res.send("server is live"));
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
 
@@ -49,4 +50,4 @@ app.use("/api/messages", messageRouter);
 await connectDB();
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log("🚀 Server is running on PORT:" + PORT));
+server.listen(PORT, () => console.log("🚀 Server is running on PORT: " + PORT));

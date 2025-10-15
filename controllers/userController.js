@@ -85,12 +85,30 @@ export const updateProfile = async (req, res) => {
     let updatedUser;
 
     if (profilePic) {
-      const upload = await cloudinary.uploader.upload(profilePic);
-      updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { profilePic: upload.secure_url, bio, fullName },
-        { new: true }
-      );
+      try {
+        const upload = await cloudinary.uploader.upload(profilePic, {
+          timeout: 30000, // 30 second timeout
+        });
+        updatedUser = await User.findByIdAndUpdate(
+          userId,
+          { profilePic: upload.secure_url, bio, fullName },
+          { new: true }
+        );
+      } catch (cloudinaryError) {
+        console.error("Cloudinary upload failed:", cloudinaryError);
+        // Fallback: update without profile picture
+        updatedUser = await User.findByIdAndUpdate(
+          userId,
+          { bio, fullName },
+          { new: true }
+        );
+        return res.json({
+          success: true,
+          user: updatedUser,
+          message:
+            "Profile updated but image upload failed due to network restrictions",
+        });
+      }
     } else {
       updatedUser = await User.findByIdAndUpdate(
         userId,
